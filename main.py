@@ -32,6 +32,8 @@ def handle_event(event):
         "PLAYER_BUSTED": "Player busted",
         "PLAYER_LOST_ALL_IN": "Player lost all-in",
         "PLAYER_LOST": "Player lost the hand",
+        "EVENT_HOOKS_ALREADY_INSTALLED": "Hooks already installed, game is running or waiting for new game",
+        "EVENT_HOOKS_INSTALLED": "Hooks installed, new game started"
     }
     
     message = messages.get(event, f"Unknown event: {event}")
