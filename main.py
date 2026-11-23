@@ -1,5 +1,6 @@
 import time
 from pathlib import Path
+import tkinter as tk
 
 EVENT_FILE = Path("poker_events.txt")
 PISHOCK_ENABLED = False
@@ -20,25 +21,24 @@ if PISHOCK_ENABLED:
         print(f"Error initializing PiShock API: {e}")
         shocker = None
 
+
 def handle_pishock(event):
     if not PISHOCK_ENABLED or shocker is None:
         return
     # pishock events
-    
 
-    
+
 def handle_event(event):
     messages = {
         "PLAYER_BUSTED": "Player busted",
         "PLAYER_LOST_ALL_IN": "Player lost all-in",
         "PLAYER_LOST": "Player lost the hand",
         "EVENT_HOOKS_ALREADY_INSTALLED": "Hooks already installed, game is running or waiting for new game",
-        "EVENT_HOOKS_INSTALLED": "Hooks installed, new game started"
+        "EVENT_HOOKS_INSTALLED": "Hooks installed, new game started",
     }
-    
+
     message = messages.get(event, f"Unknown event: {event}")
     print(f"Event: {message}")
-
 
 
 def listen():
@@ -59,5 +59,31 @@ def listen():
             handle_event(event)
 
 
-if __name__ == "__main__":
-    listen()
+root = tk.Tk()
+
+root.title("Tycho's PiShock Integrations")
+root.minsize(600, 400)
+root.config(bg="skyblue")
+
+left_frame = tk.Frame(root, width=150, height=400)
+left_frame.pack(padx=10, pady=10, side=tk.LEFT, fill=tk.Y)
+left_frame.config(bg="red")
+
+status_frame = tk.Frame(left_frame)
+status_frame.pack(padx=10, pady=10)
+
+tk.Label(status_frame, text="PiShock Status").pack()
+readyLbl = tk.Label(status_frame, text="NOT READY", fg="red").pack()
+connect_pishock_btn = tk.Button(status_frame, text="Connect", width=10)
+connect_pishock_btn.pack(pady=5)
+
+configure_pishock_btn = tk.Button(status_frame, text="Configure", width=10)
+configure_pishock_btn.pack(pady=5)
+
+buttons_frame = tk.Frame(left_frame, width=150, height=300)
+buttons_frame.pack(padx=10, pady=10, side=tk.LEFT, fill=tk.Y)
+
+right_frame = tk.Frame(root, width=450, height=400)
+right_frame.pack(padx=10, pady=10, side=tk.RIGHT, fill=tk.BOTH, expand=True)
+
+root.mainloop()
