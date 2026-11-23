@@ -13,7 +13,6 @@ end
 
 function mod.installHooks() -- need to run this every new game table, player is recreated each time
     local players = GameObject:GetTable():GetPlayers()
-    local event
     for _, p in pairs(players) do
         if p:GetName() == mod.playerName then
             if p._eventHooksInstalled then return end
@@ -29,20 +28,17 @@ function mod.installHooks() -- need to run this every new game table, player is 
                     allIn = result == true
                 end
 
-                event = "PLAYER_LOST"
-
                 if allIn then
-                    event = "PLAYER_LOST_ALL_IN"
+                    log("PLAYER_LOST_ALL_IN")
+                else
+                    log("PLAYER_LOST")
                 end
-
-                log(event)
 
                 return originalLoss(self, ...)
             end
 
             p.BustOut = function(self, ...)
-                event = "PLAYER_BUSTED"
-                log(event)
+                log("PLAYER_BUSTED")
                 return originalBustOut(self, ...)
             end
 
