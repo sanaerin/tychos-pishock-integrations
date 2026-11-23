@@ -28,14 +28,15 @@ def handle_pishock(event):
 
     
 def handle_event(event):
-    print(f"Event: {event}")
+    messages = {
+        "PLAYER_BUSTED": "Player busted",
+        "PLAYER_LOST_ALL_IN": "Player lost all-in",
+        "PLAYER_LOST": "Player lost the hand",
+    }
+    
+    message = messages.get(event, f"Unknown event: {event}")
+    print(f"Event: {message}")
 
-    if event == "PLAYER_BUSTED":
-        print("Player busted")
-    elif event == "PLAYER_LOST_ALL_IN":
-        print("Player lost all-in")
-    elif event == "PLAYER_LOST":
-        print("Player lost")
 
 
 def listen():
