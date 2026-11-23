@@ -2,43 +2,46 @@ ShockEventListener = ShockEventListener or {}
 local mod = ShockEventListener
 
 mod.playerName = "Player"
-mod.allInSeen = mod.allInSeen or false
 
-local function log(event)
-    local f = io.open("poker_events.txt", "a")
-    if f then
-        f:write(event .. "\n")
-        f:close()
-    end
-end
+function mod.installHooks() -- need to run this every new game table, player is recreated each time
+    local players = GameObject:GetTable():GetPlayers()
 
-function mod.scan()
-    local gameTable = GameObject:GetTable()
-    local plrs = gameTable:GetPlayers()
-
-    for _, p in pairs(plrs) do
+    for _, p in pairs(players) do
         if p:GetName() == mod.playerName then
-            local chips = p.chips
-            local pot = p.chipsInPot
-
-            if chips == 0 and pot > 0 then
-                if not mod.allInSeen then
-                    mod.allInSeen = true
-                    log("ALL_IN_DETECTED")
-                end
-            elseif mod.allInSeen and pot == 0 then
-                if chips == 0 then
-                    log("ALL_IN_LOST")
-                else
-                    log("ALL_IN_WON")
-                end
-
-                mod.AllInSeen = false
+            if p._eventHooksInstalled then
+                return "Hooks already installed"
             end
-            return
+
+            local originalLoss = p.HandleLoss
+
+            p.HandleLoss = function(self, ...)
+                local allIn = false
+
+                local ok, result = pcall(self.IsAllIn, self)
+                if ok then
+                    allIn = result == true
+                end
+
+                local f = io.open("poker_events.txt", "a")
+                if f then
+                    if allIn then
+                        f:write("PLAYER_LOST_ALL_IN\n")
+                    else
+                        f:write("PLAYER_LOST\n")
+                    end
+                    f:close()
+                end
+
+                return originalLoss(self, ...)
+            end
+
+            p._eventHooksInstalled = true
+
+            return "Win, loss, and all-in loss hooks installed"
         end
     end
-    log("Player not found")
+
+    return "Player not found"
 end
 
-log("Shock event listener started")
+-- log("Shock event listener started")
