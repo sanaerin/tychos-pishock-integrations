@@ -2,6 +2,7 @@ import time
 from pathlib import Path
 import tkinter as tk
 from tkinter import ttk
+from datetime import datetime
 
 EVENT_FILE = Path("poker_events.txt")
 PISHOCK_ENABLED = False
@@ -40,24 +41,37 @@ def handle_event(event):
 
     message = messages.get(event, f"Unknown event: {event}")
     print(f"Event: {message}")
-
+    
+    event_log.config(state=tk.NORMAL)
+    event_log.insert(tk.END, f"[{datetime.now().strftime('%H:%M:%S')}] {message}\n")
+    event_log.see(tk.END)
+    event_log.config(state=tk.DISABLED)
+    
+    handle_pishock(event)
 
 def listen():
     EVENT_FILE.touch(exist_ok=True)
 
-    with EVENT_FILE.open("r") as f:
-        f.seek(0, 2)  # check end of file
+    global event_file
+    event_file =  EVENT_FILE.open("r", encoding="utf-8")
+    event_file.seek(0, 2)  # check end of file
 
-        print("Listening for events...")
+    print("Listening for events...")
 
-        while True:
-            line = f.readline()
-            if not line:
-                time.sleep(0.1)  # refresh interval
-                continue
-
-            event = line.strip()
+    check_events()
+        
+def check_events():
+    line = event_file.readline()
+    
+    while line:
+        event = line.strip()
+        
+        if event:
             handle_event(event)
+
+        line = event_file.readline()
+        
+    root.after(100, check_events)  # 100ms refresh for new events
 
 
 root = tk.Tk()
@@ -99,4 +113,33 @@ busted_loss_toggle.pack(anchor="w", pady=5)
 right_frame = ttk.Frame(root, width=450, height=400)
 right_frame.pack(padx=10, pady=10, side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
+
+# event logs
+events_frame = ttk.Frame(right_frame)
+events_frame.pack(fill=tk.BOTH, expand=True, pady=10)
+
+event_scrollbar = ttk.Scrollbar(events_frame, orient=tk.VERTICAL)
+
+event_log = tk.Text(
+    events_frame,
+    yscrollcommand=event_scrollbar.set,
+    state=tk.DISABLED,
+    wrap=tk.WORD
+)
+
+event_scrollbar.config(command=event_log.yview)
+
+event_log.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+event_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+event_file = None
+
+def close_app():
+    if event_file:
+        event_file.close()
+    root.destroy()
+
+root.protocol("WM_DELETE_WINDOW", close_app)
+
+listen()
 root.mainloop()
