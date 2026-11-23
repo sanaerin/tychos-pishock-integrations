@@ -82,6 +82,20 @@ configure_pishock_btn.pack(pady=5)
 buttons_frame = ttk.Frame(left_frame, width=150, height=300)
 buttons_frame.pack(padx=10, pady=10, side=tk.LEFT, fill=tk.Y)
 
+hand_loss_enabled = tk.BooleanVar(value=True)
+all_in_loss_enabled = tk.BooleanVar(value=True)
+busted_loss_enabled = tk.BooleanVar(value=True)
+
+ttk.Label(buttons_frame, text="Shock conditions").pack(pady=5)
+hand_loss_toggle = ttk.Checkbutton(buttons_frame, text="Lose hand", variable=hand_loss_enabled)
+hand_loss_toggle.pack(anchor="w", pady=5)
+
+all_in_loss_toggle = ttk.Checkbutton(buttons_frame, text="Lose all-in", variable=all_in_loss_enabled)
+all_in_loss_toggle.pack(anchor="w", pady=5)
+
+busted_loss_toggle = ttk.Checkbutton(buttons_frame, text="Busted", variable=busted_loss_enabled)
+busted_loss_toggle.pack(anchor="w", pady=5)
+
 right_frame = ttk.Frame(root, width=450, height=400)
 right_frame.pack(padx=10, pady=10, side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
