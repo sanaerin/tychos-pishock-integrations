@@ -5,24 +5,31 @@ from tkinter import ttk
 from datetime import datetime
 
 EVENT_FILE = Path("poker_events.txt")
-PISHOCK_ENABLED = False
+PISHOCK_ENABLED = True
 
 shocker = None
-if PISHOCK_ENABLED:
-    try:
-        from pishock import PiShockAPI
 
-        from config import api_key, sharecode, username
+def log(message):
+    event_log.config(state=tk.NORMAL)
+    event_log.insert(tk.END, f"[{datetime.now().strftime('%H:%M:%S')}] {message}\n")
+    event_log.see(tk.END)
+    event_log.config(state=tk.DISABLED)
+    
+def connnect_pishock():
+    if PISHOCK_ENABLED:
+        try:
+            from pishock import PiShockAPI
 
-        api = PiShockAPI(username, api_key, sharecode)
-        shocker = api.shocker(sharecode)
+            from config import api_key, sharecode, username
 
-        # add beep when pishock is ready
-        print("PiShock API initialized")
-    except Exception as e:
-        print(f"Error initializing PiShock API: {e}")
-        shocker = None
+            api = PiShockAPI(username, api_key)
+            shocker = api.shocker(sharecode)
 
+            # add beep when pishock is ready
+            log("PiShock API initialized")
+        except Exception as e:
+            log(f"Error initializing PiShock API: {e}")
+            shocker = None
 
 def handle_pishock(event):
     if not PISHOCK_ENABLED or shocker is None:
@@ -40,12 +47,7 @@ def handle_event(event):
     }
 
     message = messages.get(event, f"Unknown event: {event}")
-    print(f"Event: {message}")
-    
-    event_log.config(state=tk.NORMAL)
-    event_log.insert(tk.END, f"[{datetime.now().strftime('%H:%M:%S')}] {message}\n")
-    event_log.see(tk.END)
-    event_log.config(state=tk.DISABLED)
+    log(f"Event: {message}")
     
     handle_pishock(event)
 
@@ -87,7 +89,8 @@ status_frame.pack(padx=10, pady=10)
 
 ttk.Label(status_frame, text="PiShock Status").pack()
 readyLbl = ttk.Label(status_frame, text="NOT READY", foreground="red").pack()
-connect_pishock_btn = ttk.Button(status_frame, text="Connect", width=10)
+
+connect_pishock_btn = ttk.Button(status_frame, text="Connect", width=10, command=connnect_pishock)
 connect_pishock_btn.pack(pady=5)
 
 configure_pishock_btn = ttk.Button(status_frame, text="Configure", width=10)
