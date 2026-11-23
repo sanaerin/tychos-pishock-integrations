@@ -115,11 +115,11 @@ ttk.Label(status_frame, text="PiShock Status").pack()
 readyLbl = ttk.Label(status_frame, text="NOT READY", foreground="red").pack()
 
 connect_pishock_btn = ttk.Button(
-    status_frame, text="Connect", width=10, command=connect_pishock
+    status_frame, text="Check connection", width=20, command=connect_pishock
 )
 connect_pishock_btn.pack(pady=5)
 
-configure_pishock_btn = ttk.Button(status_frame, text="Configure", width=10)
+configure_pishock_btn = ttk.Button(status_frame, text="Configure", width=20)
 configure_pishock_btn.pack(pady=5)
 
 buttons_frame = ttk.Frame(left_frame, width=150, height=300)
