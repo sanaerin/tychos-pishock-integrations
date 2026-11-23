@@ -1,15 +1,16 @@
-from pathlib import Path
-import tkinter as tk
-from tkinter import ttk
-from datetime import datetime
 import configparser
 import os
+import tkinter as tk
+from datetime import datetime
+from pathlib import Path
+from tkinter import ttk
 
 EVENT_FILE = Path("pishock_events.txt")
 CONFIG_FILE = Path("pishock_config.ini")
 PISHOCK_ENABLED = True
 
 shocker = None
+
 
 def log(message):
     event_log.config(state=tk.NORMAL)
@@ -18,39 +19,41 @@ def log(message):
     event_log.config(state=tk.DISABLED)
 
 
+def refresh_config():
+    global username, api_key, sharecode
+
+    config = load_config()
+
+    username = config.get("PiShock", "username", fallback="")
+    api_key = config.get("PiShock", "api_key", fallback="")
+    sharecode = config.get("PiShock", "sharecode", fallback="")
+
+
 def load_config():
     config = configparser.ConfigParser()
-    
+
     if not CONFIG_FILE.exists():
-        config["PiShock"] = {
-            "username": "",
-            "api_key": "",
-            "sharecode": ""
-        }
-        
+        config["PiShock"] = {"username": "", "api_key": "", "sharecode": ""}
+
         with CONFIG_FILE.open("w") as f:
             config.write(f)
-        
-        log("Created config.ini")
     else:
         config.read(CONFIG_FILE)
-        
+
     return config
 
-config = load_config()
-username = config.get("PiShock", "username", fallback="")
-api_key = config.get("PiShock", "api_key", fallback="")
-sharecode = config.get("PiShock", "sharecode", fallback="")
 
 def open_config():
-    if not CONFIG_FILE.exists:
-        load_config() # creates config if it doesn't exist
-        
+    if not CONFIG_FILE.exists():
+        load_config()  # creates config if it doesn't exist
+
     os.startfile(CONFIG_FILE.resolve())
 
 
 def connect_pishock():
     global api, shocker
+
+    refresh_config()
 
     if not PISHOCK_ENABLED:
         log("PiShock is disabled")
@@ -59,8 +62,8 @@ def connect_pishock():
     try:
         from pishock import PiShockAPI
 
-        if not all([api_key, sharecode, username]):
-            log("PiShock: Missing configuration, please configure")
+        if not any([api_key, sharecode, username]):
+            log("PiShock: Configuration empty, please configure!")
             return
 
         log("Connecting to PiShock API...")
@@ -76,11 +79,14 @@ def connect_pishock():
 
         if info.is_paused:
             log("PiShock is paused")
+            readyLbl.config(text="PAUSED", foreground="yellow")
         else:
             log("PiShock is ready")
+            readyLbl.config(text="READY", foreground="green")
 
     except Exception as e:
         log(f"PiShock connection failed: {e}")
+        readyLbl.config(text="NOT READY", foreground="red")
         shocker = None
 
 
@@ -150,7 +156,9 @@ connect_pishock_btn = ttk.Button(
 )
 connect_pishock_btn.pack(pady=5)
 
-configure_pishock_btn = ttk.Button(status_frame, text="Configure", width=20, command=open_config)
+configure_pishock_btn = ttk.Button(
+    status_frame, text="Configure", width=20, command=open_config
+)
 configure_pishock_btn.pack(pady=5)
 
 buttons_frame = ttk.Frame(left_frame, width=150, height=300)
