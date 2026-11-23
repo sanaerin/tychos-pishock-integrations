@@ -8,9 +8,7 @@ function mod.installHooks() -- need to run this every new game table, player is 
 
     for _, p in pairs(players) do
         if p:GetName() == mod.playerName then
-            if p._eventHooksInstalled then
-                return "Hooks already installed"
-            end
+            if p._eventHooksInstalled then return end
 
             local originalLoss = p.HandleLoss
 
@@ -37,11 +35,9 @@ function mod.installHooks() -- need to run this every new game table, player is 
 
             p._eventHooksInstalled = true
 
-            return "Win, loss, and all-in loss hooks installed"
+            return
         end
     end
-
-    return "Player not found"
 end
 
 -- log("Shock event listener started")
