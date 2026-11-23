@@ -11,6 +11,7 @@ function mod.installHooks() -- need to run this every new game table, player is 
             if p._eventHooksInstalled then return end
 
             local originalLoss = p.HandleLoss
+            local originalBustOut = p.BustOut
 
             p.HandleLoss = function(self, ...)
                 local allIn = false
@@ -20,17 +21,29 @@ function mod.installHooks() -- need to run this every new game table, player is 
                     allIn = result == true
                 end
 
+                local event = "PLAYER_LOST"
+
+                if allIn then
+                    event = "PLAYER_LOST_ALL_IN"
+                end
+
                 local f = io.open("poker_events.txt", "a")
                 if f then
-                    if allIn then
-                        f:write("PLAYER_LOST_ALL_IN\n")
-                    else
-                        f:write("PLAYER_LOST\n")
-                    end
+                    f:write(event .. "\n")
                     f:close()
                 end
 
                 return originalLoss(self, ...)
+            end
+
+            p.BustOut = function(self, ...)
+                local f = io.open("poker_events.txt", "a")
+                if f then
+                    f:write("PLAYER_BUSTED\n")
+                    f:close()
+                end
+
+                return originalBustOut(self, ...)
             end
 
             p._eventHooksInstalled = true
