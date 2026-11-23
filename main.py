@@ -2,18 +2,51 @@ from pathlib import Path
 import tkinter as tk
 from tkinter import ttk
 from datetime import datetime
+import configparser
+import os
 
-EVENT_FILE = Path("poker_events.txt")
+EVENT_FILE = Path("pishock_events.txt")
+CONFIG_FILE = Path("pishock_config.ini")
 PISHOCK_ENABLED = True
 
 shocker = None
-
 
 def log(message):
     event_log.config(state=tk.NORMAL)
     event_log.insert(tk.END, f"[{datetime.now().strftime('%H:%M:%S')}] {message}\n")
     event_log.see(tk.END)
     event_log.config(state=tk.DISABLED)
+
+
+def load_config():
+    config = configparser.ConfigParser()
+    
+    if not CONFIG_FILE.exists():
+        config["PiShock"] = {
+            "username": "",
+            "api_key": "",
+            "sharecode": ""
+        }
+        
+        with CONFIG_FILE.open("w") as f:
+            config.write(f)
+        
+        log("Created config.ini")
+    else:
+        config.read(CONFIG_FILE)
+        
+    return config
+
+config = load_config()
+username = config.get("PiShock", "username", fallback="")
+api_key = config.get("PiShock", "api_key", fallback="")
+sharecode = config.get("PiShock", "sharecode", fallback="")
+
+def open_config():
+    if not CONFIG_FILE.exists:
+        load_config() # creates config if it doesn't exist
+        
+    os.startfile(CONFIG_FILE.resolve())
 
 
 def connect_pishock():
@@ -26,10 +59,8 @@ def connect_pishock():
     try:
         from pishock import PiShockAPI
 
-        from config import api_key, sharecode, username
-
         if not all([api_key, sharecode, username]):
-            log("PiShock: Missing configuration")
+            log("PiShock: Missing configuration, please configure")
             return
 
         log("Connecting to PiShock API...")
@@ -119,7 +150,7 @@ connect_pishock_btn = ttk.Button(
 )
 connect_pishock_btn.pack(pady=5)
 
-configure_pishock_btn = ttk.Button(status_frame, text="Configure", width=20)
+configure_pishock_btn = ttk.Button(status_frame, text="Configure", width=20, command=open_config)
 configure_pishock_btn.pack(pady=5)
 
 buttons_frame = ttk.Frame(left_frame, width=150, height=300)
