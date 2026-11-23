@@ -1,12 +1,11 @@
-import configparser
-import os
 import tkinter as tk
 from datetime import datetime
 from pathlib import Path
 from tkinter import ttk
 
+from config import get_config, open_config
+
 EVENT_FILE = Path("pishock_events.txt")
-CONFIG_FILE = Path("pishock_config.ini")
 PISHOCK_ENABLED = True
 
 shocker = None
@@ -19,41 +18,14 @@ def log(message):
     event_log.config(state=tk.DISABLED)
 
 
-def refresh_config():
-    global username, api_key, sharecode
-
-    config = load_config()
-
-    username = config.get("PiShock", "username", fallback="")
-    api_key = config.get("PiShock", "api_key", fallback="")
-    sharecode = config.get("PiShock", "sharecode", fallback="")
-
-
-def load_config():
-    config = configparser.ConfigParser()
-
-    if not CONFIG_FILE.exists():
-        config["PiShock"] = {"username": "", "api_key": "", "sharecode": ""}
-
-        with CONFIG_FILE.open("w") as f:
-            config.write(f)
-    else:
-        config.read(CONFIG_FILE)
-
-    return config
-
-
-def open_config():
-    if not CONFIG_FILE.exists():
-        load_config()  # creates config if it doesn't exist
-
-    os.startfile(CONFIG_FILE.resolve())
-
-
 def connect_pishock():
     global api, shocker
 
-    refresh_config()
+    config = get_config()
+
+    username = config["username"]
+    api_key = config["api_key"]
+    sharecode = config["sharecode"]
 
     if not PISHOCK_ENABLED:
         log("PiShock is disabled")
@@ -149,7 +121,8 @@ status_frame = ttk.Frame(left_frame, width=150, height=100)
 status_frame.pack(padx=10, pady=10)
 
 ttk.Label(status_frame, text="PiShock Status").pack()
-readyLbl = ttk.Label(status_frame, text="NOT READY", foreground="red").pack()
+readyLbl = ttk.Label(status_frame, text="NOT READY", foreground="red")
+readyLbl.pack()
 
 connect_pishock_btn = ttk.Button(
     status_frame, text="Check connection", width=20, command=connect_pishock
