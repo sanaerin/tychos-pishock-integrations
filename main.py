@@ -51,14 +51,14 @@ def connect_pishock():
 
         if info.is_paused:
             log("PiShock is paused")
-            readyLbl.config(text="PAUSED", foreground="yellow")
+            readyLbl.config(text="Paused", foreground="yellow")
         else:
             log("PiShock is ready")
-            readyLbl.config(text="READY", foreground="green")
+            readyLbl.config(text="Ready", foreground="green")
 
     except Exception as e:
         log(f"PiShock connection failed: {e}")
-        readyLbl.config(text="NOT READY", foreground="red")
+        readyLbl.config(text="Not ready", foreground="red")
         shocker = None
 
 
@@ -79,6 +79,9 @@ def handle_event(event):
 
     message = messages.get(event, f"Unknown event: {event}")
     log(f"Event: {message}")
+    
+    if event == "EVENT_HOOKS_INSTALLED":
+        ingameLbl.config(text="In-game", foreground="green")
 
     handle_pishock(event)
 
@@ -90,7 +93,8 @@ def listen():
     event_file = EVENT_FILE.open("r", encoding="utf-8")
     event_file.seek(0, 2)  # check end of file
 
-    print("Listening for events...")
+    log("Listening for events...")
+    log("Press F5 in-game when starting a new table to hook into events for the round")
 
     check_events()
 
@@ -120,8 +124,10 @@ left_frame.pack(padx=10, pady=10, side=tk.LEFT, fill=tk.Y)
 status_frame = ttk.Frame(left_frame, width=150, height=100)
 status_frame.pack(padx=10, pady=10)
 
-ttk.Label(status_frame, text="PiShock Status").pack()
-readyLbl = ttk.Label(status_frame, text="NOT READY", foreground="red")
+
+# status panel
+ttk.Label(status_frame, text="PiShock status").pack()
+readyLbl = ttk.Label(status_frame, text="Not ready", foreground="red")
 readyLbl.pack()
 
 connect_pishock_btn = ttk.Button(
@@ -134,6 +140,14 @@ configure_pishock_btn = ttk.Button(
 )
 configure_pishock_btn.pack(pady=5)
 
+ttk.Label(status_frame, text="Game status").pack(pady=5)
+ingameLbl = ttk.Label(status_frame, text="Unknown", foreground="grey")
+ingameLbl.pack()
+
+
+
+
+# shock conditions panel
 buttons_frame = ttk.Frame(left_frame, width=150, height=300)
 buttons_frame.pack(padx=10, pady=10, side=tk.LEFT, fill=tk.Y)
 
