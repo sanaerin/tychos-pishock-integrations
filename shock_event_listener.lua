@@ -3,9 +3,17 @@ local mod = ShockEventListener
 
 mod.playerName = "Player"
 
+local function log(event)
+    local f = io.open("poker_events.txt", "a")
+    if f then
+        f:write(event .. "\n")
+        f:close()
+    end
+end
+
 function mod.installHooks() -- need to run this every new game table, player is recreated each time
     local players = GameObject:GetTable():GetPlayers()
-
+    local event
     for _, p in pairs(players) do
         if p:GetName() == mod.playerName then
             if p._eventHooksInstalled then return end
@@ -21,28 +29,20 @@ function mod.installHooks() -- need to run this every new game table, player is 
                     allIn = result == true
                 end
 
-                local event = "PLAYER_LOST"
+                event = "PLAYER_LOST"
 
                 if allIn then
                     event = "PLAYER_LOST_ALL_IN"
                 end
 
-                local f = io.open("poker_events.txt", "a")
-                if f then
-                    f:write(event .. "\n")
-                    f:close()
-                end
+                log(event)
 
                 return originalLoss(self, ...)
             end
 
             p.BustOut = function(self, ...)
-                local f = io.open("poker_events.txt", "a")
-                if f then
-                    f:write("PLAYER_BUSTED\n")
-                    f:close()
-                end
-
+                event = "PLAYER_BUSTED"
+                log(event)
                 return originalBustOut(self, ...)
             end
 
@@ -52,5 +52,3 @@ function mod.installHooks() -- need to run this every new game table, player is 
         end
     end
 end
-
--- log("Shock event listener started")
