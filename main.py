@@ -14,12 +14,19 @@ if PISHOCK_ENABLED:
         api = PiShockAPI(username, api_key, sharecode)
         shocker = api.shocker(sharecode)
 
+        # add beep when pishock is ready
         print("PiShock API initialized")
     except Exception as e:
         print(f"Error initializing PiShock API: {e}")
         shocker = None
 
+def handle_pishock(event):
+    if not PISHOCK_ENABLED or shocker is None:
+        return
+    # pishock events
+    
 
+    
 def handle_event(event):
     print(f"Event: {event}")
 
