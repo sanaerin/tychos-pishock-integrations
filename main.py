@@ -73,14 +73,13 @@ def handle_event(event):
         "PLAYER_BUSTED": "Player busted",
         "PLAYER_LOST_ALL_IN": "Player lost all-in",
         "PLAYER_LOST": "Player lost the hand",
-        "EVENT_HOOKS_ALREADY_INSTALLED": "Hooks already installed, game is running or waiting for new game",
-        "EVENT_HOOKS_INSTALLED": "Hooks installed, new game started",
+        "EVENT_HOOKS_INSTALLED": "New table detected",
     }
 
     message = messages.get(event, f"Unknown event: {event}")
     log(f"Event: {message}")
     
-    if event == "EVENT_HOOKS_INSTALLED":
+    if (messages.get(event)):
         ingameLbl.config(text="In-game", foreground="green")
 
     handle_pishock(event)
@@ -94,8 +93,7 @@ def listen():
     event_file.seek(0, 2)  # check end of file
 
     log("Listening for events...")
-    log("Press F5 in-game when starting a new table to hook into events for the round")
-
+    
     check_events()
 
 
@@ -141,7 +139,7 @@ configure_pishock_btn = ttk.Button(
 configure_pishock_btn.pack(pady=5)
 
 ttk.Label(status_frame, text="Game status").pack(pady=5)
-ingameLbl = ttk.Label(status_frame, text="Unknown", foreground="grey")
+ingameLbl = ttk.Label(status_frame, text="Waiting for change", foreground="grey")
 ingameLbl.pack()
 
 
