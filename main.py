@@ -61,21 +61,36 @@ def connect_pishock():
         readyLbl.config(text="Not ready", foreground="red")
         shocker = None
 
-
 def handle_pishock(event):
-    if not PISHOCK_ENABLED or shocker is None:
+    if not PISHOCK_ENABLED:
         return
-    # pishock events
+
+    config = get_config()
+
+    event_config = config["events"].get(event)
+
+    if event_config is None:
+        return
+
+    if not event_config["enabled"]:
+        log(f"{event} is disabled")
+        return
+
+    intensity = event_config["intensity"]
+    duration = event_config["duration"]
+
+    if shocker is None:
+        log("PiShock is not connected")
+        return
+
     try:
-        if event == "PLAYER_BUSTED":
-            shocker.vibrate(1, 100)
-        elif event == "PLAYER_LOST_ALL_IN":
-            shocker.vibrate(1, 50)
-        elif event == "PLAYER_LOST":
-            shocker.vibrate(1, 20)
+        log(f"Sending PiShock command for {event}...")
+        shocker.shock(intensity, duration)
+        log("PiShock command submitted")
+
     except Exception as e:
         log(f"PiShock action failed: {e}")
-        
+
 
 def handle_event(event):
     messages = {
@@ -87,8 +102,8 @@ def handle_event(event):
 
     message = messages.get(event, f"Unknown event: {event}")
     log(f"Event: {message}")
-    
-    if (messages.get(event)):
+
+    if messages.get(event):
         ingameLbl.config(text="In-game", foreground="green")
 
     handle_pishock(event)
@@ -102,7 +117,7 @@ def listen():
     event_file.seek(0, 2)  # check end of file
 
     log("Listening for events...")
-    
+
     check_events()
 
 
@@ -150,8 +165,6 @@ configure_pishock_btn.pack(pady=5)
 ttk.Label(status_frame, text="Game status").pack(pady=5)
 ingameLbl = ttk.Label(status_frame, text="Waiting for change", foreground="grey")
 ingameLbl.pack()
-
-
 
 
 # shock conditions panel
