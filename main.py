@@ -63,8 +63,12 @@ def connect_pishock():
 
 
 def handle_pishock(event):
-    if not PISHOCK_ENABLED:
+    if not PISHOCK_ENABLED or shocker is None:
+        log("PiShock is not connected")
         return
+
+    if event == "TEST":
+        shocker.vibrate(1, 25)
 
     config = get_config()
 
@@ -79,10 +83,6 @@ def handle_pishock(event):
 
     intensity = event_config["intensity"]
     duration = event_config["duration"]
-
-    if shocker is None:
-        log("PiShock is not connected")
-        return
 
     try:
         log(f"Sending PiShock command for {event}...")
@@ -99,6 +99,7 @@ def handle_event(event):
         "PLAYER_LOST_ALL_IN": "Player lost all-in",
         "PLAYER_LOST": "Player lost the hand",
         "EVENT_HOOKS_INSTALLED": "New table detected",
+        "TEST": "Testing PiShock",
     }
 
     message = messages.get(event, f"Unknown event: {event}")
@@ -158,10 +159,19 @@ connect_pishock_btn = ttk.Button(
 )
 connect_pishock_btn.pack(pady=5)
 
+configtest_frame = ttk.Frame(status_frame, width=150, height=100)
+configtest_frame.pack(fill="x", pady=3)
+
 configure_pishock_btn = ttk.Button(
-    status_frame, text="Configure", width=20, command=open_config
+    configtest_frame, text="Configure", width=12, command=open_config
 )
-configure_pishock_btn.pack(pady=5)
+configure_pishock_btn.pack(side="left", fill="x", expand=True, padx=(0, 2))
+
+test_pishock_btn = ttk.Button(
+    configtest_frame, text="Test", width=5, command=lambda: handle_event("TEST")
+)
+test_pishock_btn.pack(side="left", fill="x", expand=True, padx=(2, 0))
+
 
 ttk.Label(status_frame, text="Game status").pack(pady=5)
 ingameLbl = ttk.Label(status_frame, text="Waiting for change", foreground="grey")
