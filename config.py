@@ -67,3 +67,11 @@ def open_config():
         load_config()  # creates config if it doesn't exist
 
     os.startfile(CONFIG_FILE.resolve())
+
+
+def set_event_enabled(event, enabled):
+    config = load_config()
+    config.set("Events", event, str(enabled).lower())
+
+    with CONFIG_FILE.open("w") as f:
+        config.write(f)

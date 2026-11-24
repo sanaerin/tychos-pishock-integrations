@@ -3,7 +3,7 @@ from datetime import datetime
 from pathlib import Path
 from tkinter import ttk
 
-from config import get_config, open_config
+from config import get_config, open_config, set_event_enabled
 
 EVENT_FILE = Path("pishock_events.txt")
 PISHOCK_ENABLED = True
@@ -60,6 +60,7 @@ def connect_pishock():
         log(f"PiShock connection failed: {e}")
         readyLbl.config(text="Not ready", foreground="red")
         shocker = None
+
 
 def handle_pishock(event):
     if not PISHOCK_ENABLED:
@@ -168,26 +169,48 @@ ingameLbl.pack()
 
 
 # shock conditions panel
+config = get_config()
+
+
+def update_event_setting(event, variable):
+    set_event_enabled(event, variable.get())
+
+
+hand_loss_enabled = (
+    tk.BooleanVar(value=config["events"]["PLAYER_LOST"]["enabled"]) or True
+)
+all_in_loss_enabled = (
+    tk.BooleanVar(value=config["events"]["PLAYER_LOST_ALL_IN"]["enabled"]) or True
+)
+busted_loss_enabled = (
+    tk.BooleanVar(value=config["events"]["PLAYER_BUSTED"]["enabled"]) or True
+)
+
 buttons_frame = ttk.Frame(left_frame, width=150, height=300)
 buttons_frame.pack(padx=10, pady=10, side=tk.LEFT, fill=tk.Y)
 
-hand_loss_enabled = tk.BooleanVar(value=True)
-all_in_loss_enabled = tk.BooleanVar(value=True)
-busted_loss_enabled = tk.BooleanVar(value=True)
-
 ttk.Label(buttons_frame, text="Shock conditions").pack(pady=5)
 hand_loss_toggle = ttk.Checkbutton(
-    buttons_frame, text="Lose hand", variable=hand_loss_enabled
+    buttons_frame,
+    text="Lose hand",
+    variable=hand_loss_enabled,
+    command=lambda: update_event_setting("player_lost", hand_loss_enabled),
 )
 hand_loss_toggle.pack(anchor="w", pady=5)
 
 all_in_loss_toggle = ttk.Checkbutton(
-    buttons_frame, text="Lose all-in", variable=all_in_loss_enabled
+    buttons_frame,
+    text="Lose all-in",
+    variable=all_in_loss_enabled,
+    command=lambda: update_event_setting("player_lost_all_in", all_in_loss_enabled),
 )
 all_in_loss_toggle.pack(anchor="w", pady=5)
 
 busted_loss_toggle = ttk.Checkbutton(
-    buttons_frame, text="Busted", variable=busted_loss_enabled
+    buttons_frame,
+    text="Busted",
+    variable=busted_loss_enabled,
+    command=lambda: update_event_setting("player_busted", busted_loss_enabled),
 )
 busted_loss_toggle.pack(anchor="w", pady=5)
 
