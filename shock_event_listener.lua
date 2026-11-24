@@ -4,7 +4,7 @@ local mod = ShockEventListener
 mod.playerName = "Player"
 
 local function log(event)
-    local f = io.open("poker_events.txt", "a")
+    local f = io.open("pishock_events.txt", "a")
     if f then
         f:write(event .. "\n")
         f:close()
