@@ -66,7 +66,16 @@ def handle_pishock(event):
     if not PISHOCK_ENABLED or shocker is None:
         return
     # pishock events
-
+    try:
+        if event == "PLAYER_BUSTED":
+            shocker.vibrate(1, 100)
+        elif event == "PLAYER_LOST_ALL_IN":
+            shocker.vibrate(1, 50)
+        elif event == "PLAYER_LOST":
+            shocker.vibrate(1, 20)
+    except Exception as e:
+        log(f"PiShock action failed: {e}")
+        
 
 def handle_event(event):
     messages = {
