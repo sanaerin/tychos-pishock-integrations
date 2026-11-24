@@ -99,14 +99,13 @@ def handle_event(event):
         "PLAYER_LOST_ALL_IN": "Player lost all-in",
         "PLAYER_LOST": "Player lost the hand",
         "EVENT_HOOKS_INSTALLED": "New table detected",
-        "TEST": "Testing PiShock",
     }
 
-    message = messages.get(event, f"Unknown event: {event}")
+    message = messages.get(event, f"{event}")
     log(f"Event: {message}")
 
     if messages.get(event):
-        ingameLbl.config(text="In-game", foreground="green")
+        ingameLbl.config(text="In-game", foreground="green") # detects game activity from pishock_events.txt file
 
     handle_pishock(event)
 
