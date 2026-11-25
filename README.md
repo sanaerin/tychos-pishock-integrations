@@ -1,7 +1,7 @@
 (Caution: This mod is a work in progress, use at your own risk)
 
 # Tycho's PiShock Integrations
-<img width="773" height="432" alt="image" src="https://github.com/user-attachments/assets/4e23f7e0-77ea-4c41-b3af-5debe5776eba" />
+<img width="602" height="432" alt="image" src="https://github.com/user-attachments/assets/73ce49a3-f766-42df-bc99-db2f46215361" />
 
 Tycho's PiShock Integrations adds PiShock integrations to [Poker Night at the Inventory](https://store.steampowered.com/app/3897800/Poker_Night_at_the_Inventory/) that trigger when a player does poorly or loses. 
 
