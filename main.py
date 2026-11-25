@@ -1,7 +1,7 @@
 import tkinter as tk
 from datetime import datetime
 from pathlib import Path
-from tkinter import ttk
+from tkinter import ttk, PhotoImage
 
 from config import get_config, open_config, set_event_enabled
 
@@ -105,7 +105,9 @@ def handle_event(event):
     log(f"Event: {message}")
 
     if messages.get(event):
-        ingameLbl.config(text="In-game", foreground="green") # detects game activity from pishock_events.txt file
+        ingameLbl.config(
+            text="In-game", foreground="green"
+        )  # detects game activity from pishock_events.txt file
 
     handle_pishock(event)
 
@@ -140,6 +142,7 @@ root = tk.Tk()
 
 root.title("Tycho's PiShock Integrations")
 root.minsize(600, 400)
+root.iconbitmap("images/tycho-icon.ico")
 
 left_frame = ttk.Frame(root, width=150, height=400)
 left_frame.pack(padx=10, pady=10, side=tk.LEFT, fill=tk.Y)
@@ -147,6 +150,9 @@ left_frame.pack(padx=10, pady=10, side=tk.LEFT, fill=tk.Y)
 status_frame = ttk.Frame(left_frame, width=150, height=100)
 status_frame.pack(padx=10, pady=10)
 
+tycho_background_image = PhotoImage(file="images/tycho-bg.png")
+tycho_background_label = ttk.Label(root, image=tycho_background_image)
+tycho_background_label.place(relx=1.0, rely=1.0, anchor="se")
 
 # status panel
 ttk.Label(status_frame, text="PiShock status").pack()
@@ -252,6 +258,7 @@ def close_app():
 
 
 root.protocol("WM_DELETE_WINDOW", close_app)
+
 
 listen()
 root.mainloop()
