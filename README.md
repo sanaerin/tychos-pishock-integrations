@@ -2,14 +2,15 @@
 
 
 # Tycho's PiShock Integrations
-<img width="602" height="432" alt="image" src="https://github.com/user-attachments/assets/73ce49a3-f766-42df-bc99-db2f46215361" />
 
 Tycho's PiShock Integrations adds PiShock integrations to [Poker Night at the Inventory Remastered](https://store.steampowered.com/app/3897800/Poker_Night_at_the_Inventory/) that trigger when a player does poorly or loses. 
 
-(Caution: This mod is a work in progress and has not been tested with real PiShock using a Share Code yet, use at your own risk)
+(Caution: This mod is a work in progress and has not been tested with real PiShock device yet, use at your own risk)
+
+<img width="602" height="432" alt="image" src="https://github.com/user-attachments/assets/69e1250c-b849-4b49-9c20-c50923d03a27" />
 
 # Requirements
-- [PiShock](https://pishock.com/#/) device with username, API key and a share code 
+- [PiShock](https://pishock.com/#/) device with a valid API key
 - [Poker Night at the Inventory Remastered](https://store.steampowered.com/app/3897800/Poker_Night_at_the_Inventory/)
 
 # Installing the mod
