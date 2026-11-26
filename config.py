@@ -37,9 +37,7 @@ def get_config():
     config = load_config()
 
     return {
-        "username": config.get("PiShock", "username"),
         "api_key": config.get("PiShock", "api_key"),
-        "sharecode": config.get("PiShock", "sharecode"),
         "events": {
             "PLAYER_LOST": {
                 "enabled": config.getboolean("Events", "player_lost"),

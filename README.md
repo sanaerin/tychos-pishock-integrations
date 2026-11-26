@@ -50,7 +50,7 @@ player_busted_intensity = 90
 player_busted_duration = 4
 ```
 ## Getting your API key
-You can get your username and API key from the [PiShock account page](https://login.pishock.com/Account)
+You can get your API key from the [PiShock account page](https://login.pishock.com/Account)
 
 Under the API Keys section, press Add New and give the API key a name and an expiration date. After the key is created copy the key shown into the `api_key` field in the config file (you only see this key once when creating it). 
 
