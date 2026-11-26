@@ -9,9 +9,7 @@ def load_config():
     config = configparser.ConfigParser()
 
     config["PiShock"] = {
-        "username": "",
         "api_key": "",
-        "sharecode": "",
     }
 
     config["Events"] = {

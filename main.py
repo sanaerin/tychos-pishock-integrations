@@ -1,4 +1,3 @@
-import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -19,12 +18,12 @@ from PySide6.QtWidgets import (
 )
 
 from config import get_config, open_config, set_event_enabled
+from pishock_api import get_account, get_shockers, operate
 
 EVENT_FILE = Path("pishock_events.txt")
 PISHOCK_ENABLED = True
 
-shocker = None
-api = None
+shocker_id = None
 event_file = None
 event_timer = None
 event_log = None
@@ -49,71 +48,81 @@ def log(message):
     event_log.ensureCursorVisible()
 
 
-def resource_path(relative_path): # pyinstaller resource helper
-    if getattr(sys, 'frozen', False):
+def resource_path(relative_path):  # pyinstaller resource helper
+    if getattr(sys, "frozen", False):
         base_path = Path(sys._MEIPASS)
     else:
         base_path = Path(__file__).parent
 
     return base_path / relative_path
 
+
 def connect_pishock():
-    global api, shocker
+    global shocker_id
 
-    config = get_config()
-
-    username = config["username"]
-    api_key = config["api_key"]
-    sharecode = config["sharecode"]
+    shocker_id = None
 
     if not PISHOCK_ENABLED:
         log("PiShock is disabled")
         return
 
     try:
-        from pishock import PiShockAPI
-
-        if not any([api_key, sharecode, username]):
-            log("PiShock: Configuration empty, please configure!")
-            return
-
         log("Connecting to PiShock API...")
 
-        api = PiShockAPI(username, api_key)
-        shocker = api.shocker(sharecode)
+        account = get_account()  # loads api key from config and sends request
 
-        info = shocker.info()
+        log(f"Logged in as {account['Username']}")
 
-        log("PiShock: Credentials and share code accepted")
-        log(f"Device: {info.name}")
-        log(f"Paused: {info.is_paused}")
+        shockers = get_shockers(account["UserId"])
 
-        if info.is_paused:
-            log("PiShock is paused")
-            readyLbl.setText("Paused")
-            readyLbl.setStyleSheet("color: yellow;")
-        else:
-            log("PiShock is ready")
-            readyLbl.setText("Ready")
-            readyLbl.setStyleSheet("color: green;")
+        if not shockers:
+            log("No active V3 compatible shockers found")
+            readyLbl.setText("No devices")
+            readyLbl.setStyleSheet("color: orange;")
+            return
+
+        selected = shockers[0]  # use first device found, TODO: make a selector
+        shocker_id = selected["Id"]
+
+        log("PiShock connection successful!")
+        log(f"Device: {selected['Name']}")
+        log(f"Available devices: {len(shockers)}")
+
+        readyLbl.setText("Ready")
+        readyLbl.setStyleSheet("color: green;")
 
     except Exception as e:
         log(f"PiShock connection failed: {e}")
+
         readyLbl.setText("Not ready")
         readyLbl.setStyleSheet("color: red;")
-        shocker = None
+
+        shocker_id = None
 
 
 def handle_pishock(event):
-    if not PISHOCK_ENABLED or shocker is None:
+    if not PISHOCK_ENABLED or shocker_id is None:
         log("PiShock is not connected")
         return
 
+    # test button: vibration
     if event == "TEST":
-        shocker.vibrate(1, 25)
+        try:
+            log("Sending PiShock test...")
+            operate(
+                shocker_id,
+                operation=1,  # 1 = vibrate
+                duration=1,
+                intensity=25,
+            )
+            log("PiShock test successful")
+
+        except Exception as e:
+            log(f"PiShock test failed: {e}")
+
+        return
 
     config = get_config()
-
     event_config = config["events"].get(event)
 
     if event_config is None:
@@ -128,7 +137,14 @@ def handle_pishock(event):
 
     try:
         log(f"Sending PiShock command for {event}...")
-        shocker.shock(intensity, duration)
+
+        operate(
+            shocker_id,
+            operation=0,
+            duration=duration,
+            intensity=intensity,
+        )
+
         log("PiShock command submitted")
 
     except Exception as e:
@@ -152,9 +168,11 @@ def handle_event(event):
             "color: green;"
         )  # detects game activity from pishock_events.txt file
 
-    if event == "EVENT_HOOKS_INSTALLED": # could add a beep here or something to detect new game?
-        return 
-    
+    if (
+        event == "EVENT_HOOKS_INSTALLED"
+    ):  # could add a beep here or something to detect new game?
+        return
+
     handle_pishock(event)
 
 
@@ -238,7 +256,7 @@ readyLbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
 readyLbl.setStyleSheet("color: red;")
 status_layout.addWidget(readyLbl)
 
-connect_pishock_btn = QPushButton("Check connection")
+connect_pishock_btn = QPushButton("Connect")
 connect_pishock_btn.clicked.connect(connect_pishock)
 status_layout.addWidget(connect_pishock_btn)
 
