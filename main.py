@@ -152,6 +152,9 @@ def handle_event(event):
             "color: green;"
         )  # detects game activity from pishock_events.txt file
 
+    if event == "EVENT_HOOKS_INSTALLED": # could add a beep here or something to detect new game?
+        return 
+    
     handle_pishock(event)
 
 
