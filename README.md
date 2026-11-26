@@ -1,3 +1,6 @@
+<img width="745" height="428" alt="banner" src="https://github.com/user-attachments/assets/f9ecfcad-621a-4a4b-a63e-5fee5b795ceb" />
+
+
 # Tycho's PiShock Integrations
 <img width="602" height="432" alt="image" src="https://github.com/user-attachments/assets/73ce49a3-f766-42df-bc99-db2f46215361" />
 
