@@ -60,16 +60,16 @@ Under the API Keys section, press Add New and give the API key a name and an exp
 ## Getting your Share Code
 Your Share Code can be found in [PiShock Control](https://pishock.com/#/control). According to the [docs](https://docs.pishock.com/pishock/pishock-v3-documentation.html) it should be found in the top-right Share button of the shocker controls. Create a new Share Code and copy it to `sharecode` in the config.
 
-## Playing the game (finally)
+# Playing the game (finally)
 Open Poker Night at the Inventory and Tycho's PiShock Integrations. The game status should turn from Unknown into In-game when an event happens (new game, player lost, etc.). 
 
 <img width="155" height="62" alt="image" src="https://github.com/user-attachments/assets/d6069b31-6187-4cd3-8278-20dec5fbc497" />
 
 When an event happens in the game, you should see it in the logs as well as the result of the shock. You can manage the shock conditions in the shock conditions section. 
 
-## Todo at some point
+# Todo at some point
 - Find out when the game closes to update the game status in the ui
 
-## Story time
+# Story time
 Initially tried to create this mod using the custom scripting functions from [Tycho's Lua Hook](https://www.nexusmods.com/pokernightattheinventory/mods/17) to listen to events. I actually got pretty far in where just pressing a keybind like F5 would trigger the script to listen for events and write them down in a txt file. For some reason though, the game kills the lua script from running when going through the pause menu to create a new game (works fine if pressing new game from the gameover screen). With so much back and forth I tried pretty much every possible function/method that there was with the help of the awesome REPL tool from [TychosLuaHookREPL](https://github.com/FriedToadTurd/TychosLuaHookREPL). Eventually I noticed that a lot of mods come in this `.ttarch2` format, and there's a cool tool for Telltale games called [TTG Tools](https://github.com/HeitorSpectre/TTG-Tools) to create mods that just plug right into the game's folder. After a lot of trial and error, I found a place where the same script I had before could be plugged directly into and this way whenever the player object gets recreated, the script doesn't die and there's no need for keybinds or other mods! 
 
