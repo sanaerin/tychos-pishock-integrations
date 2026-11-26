@@ -54,6 +54,6 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ gitthub.ref_name }}
+          tag_name: ${{ github.ref_name }}
           name: Tycho's PiShock Integrations ${{ github.ref_name }}
           files: dist/TychosPiShockIntegrations.zip
