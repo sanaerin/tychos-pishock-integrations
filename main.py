@@ -1,3 +1,4 @@
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -47,6 +48,14 @@ def log(message):
     event_log.setTextCursor(cursor)
     event_log.ensureCursorVisible()
 
+
+def resource_path(relative_path): # pyinstaller resource helper
+    if getattr(sys, 'frozen', False):
+        base_path = Path(sys._MEIPASS)
+    else:
+        base_path = Path(__file__).parent
+
+    return base_path / relative_path
 
 def connect_pishock():
     global api, shocker
@@ -183,13 +192,14 @@ app = QApplication(sys.argv)
 root = QMainWindow()
 root.setWindowTitle("Tycho's PiShock Integrations")
 root.setMinimumSize(600, 400)
-root.setWindowIcon(QIcon("images/tycho-icon.ico"))
+root.setWindowIcon(QIcon(resource_path("images/tycho-icon.ico").as_posix()))
 
 tycho_background = QWidget()
+tycho_image = resource_path("images/tycho-bg.png").as_posix()
 tycho_background.setObjectName("background_widget")
 tycho_background.setStyleSheet(
     "QWidget#background_widget {"
-    'background-image: url("images/tycho-bg.png");'
+    f'background-image: url("{tycho_image}");'
     "background-position: bottom right;"
     "background-repeat: no-repeat;"
     "}"
