@@ -1,7 +1,21 @@
-import tkinter as tk
+import sys
 from datetime import datetime
 from pathlib import Path
-from tkinter import ttk, PhotoImage
+
+from PySide6.QtCore import Qt, QTimer
+from PySide6.QtGui import QColor, QFontDatabase, QIcon, QPalette
+from PySide6.QtWidgets import (
+    QApplication,
+    QCheckBox,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QMainWindow,
+    QPlainTextEdit,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
 
 from config import get_config, open_config, set_event_enabled
 
@@ -9,13 +23,29 @@ EVENT_FILE = Path("pishock_events.txt")
 PISHOCK_ENABLED = True
 
 shocker = None
+api = None
+event_file = None
+event_timer = None
+event_log = None
+readyLbl = None
+ingameLbl = None
+
+
+def close_event_file():
+    global event_file
+
+    if event_file:
+        event_file.close()
+        event_file = None
 
 
 def log(message):
-    event_log.config(state=tk.NORMAL)
-    event_log.insert(tk.END, f"[{datetime.now().strftime('%H:%M:%S')}] {message}\n")
-    event_log.see(tk.END)
-    event_log.config(state=tk.DISABLED)
+    event_log.appendPlainText(f"[{datetime.now().strftime('%H:%M:%S')}] {message}")
+
+    cursor = event_log.textCursor()
+    cursor.movePosition(cursor.MoveOperation.End)
+    event_log.setTextCursor(cursor)
+    event_log.ensureCursorVisible()
 
 
 def connect_pishock():
@@ -51,14 +81,17 @@ def connect_pishock():
 
         if info.is_paused:
             log("PiShock is paused")
-            readyLbl.config(text="Paused", foreground="yellow")
+            readyLbl.setText("Paused")
+            readyLbl.setStyleSheet("color: yellow;")
         else:
             log("PiShock is ready")
-            readyLbl.config(text="Ready", foreground="green")
+            readyLbl.setText("Ready")
+            readyLbl.setStyleSheet("color: green;")
 
     except Exception as e:
         log(f"PiShock connection failed: {e}")
-        readyLbl.config(text="Not ready", foreground="red")
+        readyLbl.setText("Not ready")
+        readyLbl.setStyleSheet("color: red;")
         shocker = None
 
 
@@ -105,11 +138,31 @@ def handle_event(event):
     log(f"Event: {message}")
 
     if messages.get(event):
-        ingameLbl.config(
-            text="In-game", foreground="green"
+        ingameLbl.setText("In-game")
+        ingameLbl.setStyleSheet(
+            "color: green;"
         )  # detects game activity from pishock_events.txt file
 
     handle_pishock(event)
+
+
+def update_event_setting(event, variable):
+    set_event_enabled(event, variable.isChecked())
+
+
+def check_events():
+    if event_file is None:
+        return
+
+    line = event_file.readline()
+
+    while line:
+        event = line.strip()
+
+        if event:
+            handle_event(event)
+
+        line = event_file.readline()
 
 
 def listen():
@@ -122,143 +175,151 @@ def listen():
     log("Listening for events...")
 
     check_events()
+    event_timer.start(100)  # 100ms refresh for new events
 
 
-def check_events():
-    line = event_file.readline()
+app = QApplication(sys.argv)
 
-    while line:
-        event = line.strip()
+root = QMainWindow()
+root.setWindowTitle("Tycho's PiShock Integrations")
+root.setMinimumSize(600, 400)
+root.setWindowIcon(QIcon("images/tycho-icon.ico"))
 
-        if event:
-            handle_event(event)
+tycho_background = QWidget()
+tycho_background.setObjectName("background_widget")
+tycho_background.setStyleSheet(
+    "QWidget#background_widget {"
+    'background-image: url("images/tycho-bg.png");'
+    "background-position: bottom right;"
+    "background-repeat: no-repeat;"
+    "}"
+)
+root.setCentralWidget(tycho_background)
 
-        line = event_file.readline()
+main_layout = QHBoxLayout(tycho_background)
+main_layout.setContentsMargins(10, 10, 10, 10)
+main_layout.setSpacing(10)
 
-    root.after(100, check_events)  # 100ms refresh for new events
+left_frame = QWidget()
+left_frame.setFixedWidth(150)
+main_layout.addWidget(left_frame, 0)
 
+left_layout = QVBoxLayout(left_frame)
+left_layout.setContentsMargins(0, 0, 0, 0)
+left_layout.setSpacing(0)
 
-root = tk.Tk()
+status_frame = QFrame()
+left_layout.addWidget(status_frame, 0, Qt.AlignmentFlag.AlignTop)
 
-root.title("Tycho's PiShock Integrations")
-root.minsize(600, 400)
-root.iconbitmap("images/tycho-icon.ico")
-
-left_frame = ttk.Frame(root, width=150, height=400)
-left_frame.pack(padx=10, pady=10, side=tk.LEFT, fill=tk.Y)
-
-status_frame = ttk.Frame(left_frame, width=150, height=100)
-status_frame.pack(padx=10, pady=10)
-
-tycho_background_image = PhotoImage(file="images/tycho-bg.png")
-tycho_background_label = ttk.Label(root, image=tycho_background_image)
-tycho_background_label.place(relx=1.0, rely=1.0, anchor="se")
+status_layout = QVBoxLayout(status_frame)
+status_layout.setContentsMargins(10, 10, 10, 10)
+status_layout.setSpacing(3)
 
 # status panel
-ttk.Label(status_frame, text="PiShock status").pack()
-readyLbl = ttk.Label(status_frame, text="Not ready", foreground="red")
-readyLbl.pack()
+titleLbl = QLabel("PiShock status")
+titleLbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+status_layout.addWidget(titleLbl)
 
-connect_pishock_btn = ttk.Button(
-    status_frame, text="Check connection", width=20, command=connect_pishock
-)
-connect_pishock_btn.pack(pady=5)
+readyLbl = QLabel("Not ready")
+readyLbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+readyLbl.setStyleSheet("color: red;")
+status_layout.addWidget(readyLbl)
 
-configtest_frame = ttk.Frame(status_frame, width=150, height=100)
-configtest_frame.pack(fill="x", pady=3)
+connect_pishock_btn = QPushButton("Check connection")
+connect_pishock_btn.clicked.connect(connect_pishock)
+status_layout.addWidget(connect_pishock_btn)
 
-configure_pishock_btn = ttk.Button(
-    configtest_frame, text="Configure", width=12, command=open_config
-)
-configure_pishock_btn.pack(side="left", fill="x", expand=True, padx=(0, 2))
+configtest_frame = QWidget()
+status_layout.addWidget(configtest_frame)
 
-test_pishock_btn = ttk.Button(
-    configtest_frame, text="Test", width=5, command=lambda: handle_event("TEST")
-)
-test_pishock_btn.pack(side="left", fill="x", expand=True, padx=(2, 0))
+configtest_layout = QHBoxLayout(configtest_frame)
+configtest_layout.setContentsMargins(0, 3, 0, 3)
+configtest_layout.setSpacing(4)
 
+configure_pishock_btn = QPushButton("Configure")
+configure_pishock_btn.clicked.connect(lambda: open_config())
+configtest_layout.addWidget(configure_pishock_btn, 12)
 
-ttk.Label(status_frame, text="Game status").pack(pady=5)
-ingameLbl = ttk.Label(status_frame, text="Waiting for change", foreground="grey")
-ingameLbl.pack()
+test_pishock_btn = QPushButton("Test")
+test_pishock_btn.clicked.connect(lambda: handle_event("TEST"))
+configtest_layout.addWidget(test_pishock_btn, 5)
+
+status_layout.addSpacing(5)
+game_status_title = QLabel("Game status")
+game_status_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+status_layout.addWidget(game_status_title)
+
+ingameLbl = QLabel("Waiting for change")
+ingameLbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+ingameLbl.setStyleSheet("color: grey;")
+status_layout.addWidget(ingameLbl)
 
 
 # shock conditions panel
 config = get_config()
 
+buttons_frame = QFrame()
+left_layout.addWidget(buttons_frame, 0, Qt.AlignmentFlag.AlignTop)
 
-def update_event_setting(event, variable):
-    set_event_enabled(event, variable.get())
+buttons_layout = QVBoxLayout(buttons_frame)
+buttons_layout.setContentsMargins(10, 10, 10, 10)
+buttons_layout.setSpacing(5)
 
+shock_conditions_title = QLabel("Shock conditions")
+shock_conditions_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+buttons_layout.addWidget(shock_conditions_title)
 
-hand_loss_enabled = (
-    tk.BooleanVar(value=config["events"]["PLAYER_LOST"]["enabled"]) or True
+hand_loss_enabled = QCheckBox("Lose hand")
+hand_loss_enabled.setChecked(config["events"]["PLAYER_LOST"]["enabled"])
+hand_loss_enabled.clicked.connect(
+    lambda: update_event_setting("player_lost", hand_loss_enabled)
 )
-all_in_loss_enabled = (
-    tk.BooleanVar(value=config["events"]["PLAYER_LOST_ALL_IN"]["enabled"]) or True
+buttons_layout.addWidget(hand_loss_enabled, 0, Qt.AlignmentFlag.AlignLeft)
+
+all_in_loss_enabled = QCheckBox("Lose all-in")
+all_in_loss_enabled.setChecked(config["events"]["PLAYER_LOST_ALL_IN"]["enabled"])
+all_in_loss_enabled.clicked.connect(
+    lambda: update_event_setting("player_lost_all_in", all_in_loss_enabled)
 )
-busted_loss_enabled = (
-    tk.BooleanVar(value=config["events"]["PLAYER_BUSTED"]["enabled"]) or True
+buttons_layout.addWidget(all_in_loss_enabled, 0, Qt.AlignmentFlag.AlignLeft)
+
+busted_loss_enabled = QCheckBox("Busted")
+busted_loss_enabled.setChecked(config["events"]["PLAYER_BUSTED"]["enabled"])
+busted_loss_enabled.clicked.connect(
+    lambda: update_event_setting("player_busted", busted_loss_enabled)
 )
+buttons_layout.addWidget(busted_loss_enabled, 0, Qt.AlignmentFlag.AlignLeft)
 
-buttons_frame = ttk.Frame(left_frame, width=150, height=300)
-buttons_frame.pack(padx=10, pady=10, side=tk.LEFT, fill=tk.Y)
-
-ttk.Label(buttons_frame, text="Shock conditions").pack(pady=5)
-hand_loss_toggle = ttk.Checkbutton(
-    buttons_frame,
-    text="Lose hand",
-    variable=hand_loss_enabled,
-    command=lambda: update_event_setting("player_lost", hand_loss_enabled),
-)
-hand_loss_toggle.pack(anchor="w", pady=5)
-
-all_in_loss_toggle = ttk.Checkbutton(
-    buttons_frame,
-    text="Lose all-in",
-    variable=all_in_loss_enabled,
-    command=lambda: update_event_setting("player_lost_all_in", all_in_loss_enabled),
-)
-all_in_loss_toggle.pack(anchor="w", pady=5)
-
-busted_loss_toggle = ttk.Checkbutton(
-    buttons_frame,
-    text="Busted",
-    variable=busted_loss_enabled,
-    command=lambda: update_event_setting("player_busted", busted_loss_enabled),
-)
-busted_loss_toggle.pack(anchor="w", pady=5)
-
-right_frame = ttk.Frame(root, width=450, height=400)
-right_frame.pack(padx=10, pady=10, side=tk.RIGHT, fill=tk.BOTH, expand=True)
-
+right_frame = QWidget()
+right_frame.setAutoFillBackground(True)
+right_palette = right_frame.palette()
+right_palette.setColor(QPalette.ColorRole.Window, QColor(255, 255, 255, 128))
+right_frame.setPalette(right_palette)
+main_layout.addWidget(right_frame, 1)
 
 # event logs
-events_frame = ttk.Frame(right_frame)
-events_frame.pack(fill=tk.BOTH, expand=True, pady=10)
+events_layout = QVBoxLayout(right_frame)
+events_layout.setContentsMargins(0, 10, 0, 10)
+events_layout.setSpacing(0)
 
-event_scrollbar = ttk.Scrollbar(events_frame, orient=tk.VERTICAL)
+event_log = QPlainTextEdit()
+event_log.setReadOnly(True)
+event_log.setLineWrapMode(QPlainTextEdit.LineWrapMode.WidgetWidth)
+event_log.setFrameShape(QFrame.Shape.NoFrame)
+event_log.setFont(QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont))
+event_log.setCursorWidth(1)
+event_log.setBackgroundVisible(False)
+event_log.setAutoFillBackground(False)
+event_log.viewport().setAutoFillBackground(False)
 
-event_log = tk.Text(
-    events_frame, yscrollcommand=event_scrollbar.set, state=tk.DISABLED, wrap=tk.WORD
-)
-
-event_scrollbar.config(command=event_log.yview)
-
-event_log.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-event_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
-event_file = None
-
-
-def close_app():
-    if event_file:
-        event_file.close()
-    root.destroy()
+events_layout.addWidget(event_log, 1)
 
 
-root.protocol("WM_DELETE_WINDOW", close_app)
+event_timer = QTimer(root)
+event_timer.timeout.connect(check_events)
 
+app.aboutToQuit.connect(close_event_file)
 
+root.show()
 listen()
-root.mainloop()
+app.exec()
