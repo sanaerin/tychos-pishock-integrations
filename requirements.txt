@@ -1,2 +1,3 @@
 pishock
 requests
+PySide6
